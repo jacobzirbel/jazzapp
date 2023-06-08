@@ -1,0 +1,22 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules/
+.npm
+.eslintcache
+.stylelintcache
+
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+dist/
+.d_cache/
+stuff.txt
+lib/
+.git.bak
+.vscode
