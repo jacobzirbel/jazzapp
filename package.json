@@ -36,6 +36,6 @@
     "tsyringe": "^4.7.0"
   },
   "peerDependencies": {
-    "awilix": "^4.3.0"
+    "tsyringe": "^4.7.0"
   }
 }
