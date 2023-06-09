@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { InjectionToken, container } from "tsyringe";
+import { InjectionToken, Lifecycle, container } from "tsyringe";
 import { JDependency } from '../interfaces';
 import { JCache } from './cache';
 import { JLogger } from './logger';
@@ -7,8 +7,8 @@ import { JPrompter } from './prompter';
 import { JUtilities } from "./utilities";
 
 export class JApp {
-  extendedDependencies: any[] = [];
-  private baseDependencies: any[] = [];
+  extendedDependencies: { class: any, lifecycle?: Lifecycle }[] = [];
+  private baseDependencies: { class: any, lifecycle?: Lifecycle }[] = [];
   private requestedDependencies: Set<any> = new Set();
   private dependencyCache = new Map();
 
@@ -16,14 +16,13 @@ export class JApp {
 
   constructor() {
     this.baseDependencies = [
-      JUtilities,
-      JCache,
-      JLogger,
-      JPrompter,
+      { class: JUtilities },
+      { class: JCache },
+      { class: JLogger },
+      { class: JPrompter },
     ];
 
     this.registerDependencies(this.baseDependencies);
-    this.logger = container.resolve(JLogger);
   }
 
   async getDependency<T extends JDependency>(dependency: InjectionToken<T>): Promise<T> {
@@ -37,7 +36,6 @@ export class JApp {
 
   async run(fn: (app: JApp) => Promise<boolean | undefined>) {
     this.logger = await this.getDependency(JLogger);
-
     let success: boolean = true;
     try {
       success = await fn(this) ?? true;
@@ -57,29 +55,26 @@ export class JApp {
   }
 
   registerDependencies(dependencies: any[]) {
-    for (const dependency of dependencies) {
-      // register singleton with factory
-      container.register(dependency, {
-        useFactory: () => {
-          this.requestedDependencies.add(dependency);
-          const cachedInstance = this.dependencyCache.get(dependency);
-          if (cachedInstance) {
-            return cachedInstance;
-          }
-
-          const newDependency = new dependency();
-          this.dependencyCache.set(dependency, newDependency);
-          return newDependency;
-        }
-      });
+    for (const dep of dependencies) {
+      container.register(dep.class, { useClass: dep.class }, { lifecycle: dep.lifecycle ?? Lifecycle.Singleton });
+      container.afterResolution(
+        dep.class,
+        (_t, result) => {
+          console.log('adding to requested dependencies')
+          this.requestedDependencies.add(dep.class);
+        },
+        { frequency: "Once" }
+      );
     }
   }
 
   private async resetDependencies() {
     const dependencies = [...this.requestedDependencies];
+    console.log('dependency length', dependencies.length)
     for (const dependency of dependencies) {
       const dep = await this.getDependency<typeof dependency>(dependency);
       if (dep.destroy) {
+        console.log('running destroy');
         dep.destroy();
       }
     }
