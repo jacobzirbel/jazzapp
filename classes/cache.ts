@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { singleton } from "tsyringe";
 import { JDependency } from "../interfaces";
 import { JLogger } from "./logger";
@@ -15,10 +15,9 @@ export class JCache implements JDependency {
     this.objectHandler = new JObjectHandler();
     this.cacheDir = process.env.LOG_INFO_FILE || '.d_cache';
 
-    // if (!existsSync(this.cacheDir)) {
-    //   mkdirSync(this.cacheDir);
-    // }
-
+    if (!existsSync(this.cacheDir)) {
+      mkdirSync(this.cacheDir);
+    }
   }
 
   async cacheFile<T>(file: string, loadIfNotExists: () => Promise<T>): Promise<T> {

@@ -36,14 +36,14 @@ export class JApp {
   }
 
   async run(fn: (app: JApp) => Promise<boolean | undefined>) {
-    // this.logger = container.resolve(JLogger);
+    this.logger = await this.getDependency(JLogger);
 
     let success: boolean = true;
     try {
       success = await fn(this) ?? true;
     } catch (error: any) {
       success = false;
-      // this.logger.error(error.message);
+      this.logger.error(error.message);
     }
     finally {
       await this.destroy(success);
