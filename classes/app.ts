@@ -60,7 +60,6 @@ export class JApp {
       container.afterResolution(
         dep.class,
         (_t, result) => {
-          console.log('adding to requested dependencies')
           this.requestedDependencies.add(dep.class);
         },
         { frequency: "Once" }
@@ -70,11 +69,9 @@ export class JApp {
 
   private async resetDependencies() {
     const dependencies = [...this.requestedDependencies];
-    console.log('dependency length', dependencies.length)
     for (const dependency of dependencies) {
       const dep = await this.getDependency<typeof dependency>(dependency);
       if (dep.destroy) {
-        console.log('running destroy');
         dep.destroy();
       }
     }
