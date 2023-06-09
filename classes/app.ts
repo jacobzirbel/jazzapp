@@ -7,8 +7,8 @@ import { JPrompter } from './prompter';
 import { JUtilities } from "./utilities";
 
 export class JApp {
+  extendedDependencies: any[] = [];
   private baseDependencies: any[] = [];
-  private extendedDependencies: any[] = [];
   private requestedDependencies: Set<any> = new Set();
   private dependencyCache = new Map();
 
