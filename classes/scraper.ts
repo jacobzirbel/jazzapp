@@ -1,6 +1,7 @@
+import { inject, injectable } from "tsyringe";
 import { JDependency } from "../interfaces";
-import { JLogger } from "../classes/logger";
-import { JUtilities } from "../classes/utilities";
+import { JLogger } from "./logger";
+import { JUtilities } from "./utilities";
 
 export interface IBrowser {
   close(): Promise<void>;
@@ -11,9 +12,8 @@ export interface IPage {
   goto(url: string, options?: { timeout: number }): Promise<void>;
 }
 
+@injectable()
 export class JScraper {
-  private logger: JLogger;
-  private utilities: JUtilities;
   isInitialized: boolean = false;
 
   mainUrl = '';
@@ -21,9 +21,9 @@ export class JScraper {
   browser!: IBrowser;
   page!: IPage;
 
-  constructor() {
-    this.logger = new JLogger();
-    this.utilities = new JUtilities();
+  constructor(private logger: JLogger, private utilities: JUtilities) {
+    this.logger = logger;
+    this.utilities = utilities;
   }
 
   async loadPage(url?: string) {

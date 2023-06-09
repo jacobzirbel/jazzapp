@@ -1,3 +1,6 @@
+import { singleton } from "tsyringe";
+
+@singleton()
 export class JObjectHandler {
   stringify(obj: any) {
     return JSON.stringify(obj, function (key, value) {

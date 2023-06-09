@@ -1,45 +1,43 @@
-import { appendFileSync, existsSync, mkdirSync, writeFileSync } from "fs";
-import { dirname } from "path";
-import { JObjectHandler } from "../helpers/object-handler";
+import { appendFileSync, existsSync, lstatSync, mkdirSync, readdirSync, rmdirSync, writeFileSync } from "fs";
+import path from "path";
+import { singleton } from "tsyringe";
 import { JDependency } from "../interfaces";
+import { JObjectHandler } from "./object-handler";
 
+@singleton()
 export class JLogger implements JDependency {
   private objectHandler: JObjectHandler;
-  private infoFile = './logs/info.txt';
-  private errorFile = './logs/error.txt';
+  private logDir = './logs'
+  private infoFile = 'info.txt';
+  private errorFile = 'error.txt';
   instance: string;
 
   constructor() {
     this.objectHandler = new JObjectHandler();
     this.instance = this.generateDatedId();
 
-    this.infoFile = process.env.LOG_INFO_FILE || this.infoFile;
-    this.errorFile = process.env.LOG_ERROR_FILE || this.errorFile;
+    this.logDir = process.env.LOG_DIR || this.logDir;
+    this.infoFile = this.logDir + '/' + (process.env.LOG_INFO_FILE || this.infoFile);
+    this.errorFile = this.logDir + '/' + (process.env.LOG_ERROR_FILE || this.errorFile);
 
-    let dir = dirname(this.infoFile);
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
+    if (!existsSync(this.logDir)) {
+      mkdirSync(this.logDir, { recursive: true });
     }
 
     if (!existsSync(this.infoFile)) {
       writeFileSync(this.infoFile, '');
     }
 
-    dir = dirname(this.errorFile);
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
+    if (!existsSync(this.logDir)) {
+      mkdirSync(this.logDir, { recursive: true });
     }
 
     if (!existsSync(this.errorFile)) {
       writeFileSync(this.errorFile, '');
     }
 
-    if (!existsSync(`./logs/${this.instance}`)) {
-      mkdirSync(`./logs/${this.instance}`);
-    }
-
-    if (!existsSync(`./.d_cache`)) {
-      mkdirSync(`./.d_cache`);
+    if (!existsSync(`${this.logDir}/${this.instance}`)) {
+      mkdirSync(`${this.logDir}/${this.instance}`);
     }
   }
 
@@ -52,7 +50,7 @@ export class JLogger implements JDependency {
   info(toFile: string, toConsole?: string) {
     if (!toConsole && toConsole !== "") toConsole = toFile;
     appendFileSync(this.infoFile, `${toFile}-${new Date().toISOString()}\n`);
-    console.log(toConsole);
+    console.info(toConsole);
   }
 
   write(file: string, str: string): string {
@@ -69,5 +67,22 @@ export class JLogger implements JDependency {
     return new Date().toISOString() + '_' + Math.random().toString().slice(3, 7);
   }
 
-  destroy() { }
+  destroy() {
+    if (existsSync(this.logDir) && lstatSync(this.logDir).isDirectory()) {
+      // Get all items in the directory
+      const items = readdirSync(this.logDir);
+
+      for (const item of items) {
+        const fullPath = path.join(this.logDir, item);
+
+        // If the item is a directory and is empty, delete it
+        if (lstatSync(fullPath).isDirectory() && readdirSync(fullPath).length === 0) {
+          rmdirSync(fullPath);
+        }
+      }
+    } else {
+      console.info(`${this.logDir} is not a directory or does not exist.`);
+    }
+  }
+
 }

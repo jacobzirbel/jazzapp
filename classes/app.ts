@@ -1,37 +1,33 @@
-import awilix, { asClass, asFunction, Lifetime } from 'awilix';
-import { JUtilities } from "./utilities";
-import { JLogger } from './logger';
-import { JObjectHandler } from '../helpers/object-handler';
-import { JPrompter } from './prompter';
-import { JScraper } from '../helpers/scraper';
-import { JCache } from './cache';
+import 'reflect-metadata'
+import { InjectionToken, container } from "tsyringe";
 import { JDependency } from '../interfaces';
+import { JCache } from './cache';
+import { JLogger } from './logger';
+import { JPrompter } from './prompter';
+import { JUtilities } from "./utilities";
 
 export class JApp {
-  private container: awilix.AwilixContainer;
-  private baseDependencies: { [key: string]: any } = {};
-  private extendedDependencies: { [key: string]: any } = {};
+  private baseDependencies: any[] = [];
+  private extendedDependencies: any[] = [];
+  private requestedDependencies: Set<any> = new Set();
+  private dependencyCache = new Map();
 
   logger: JLogger;
 
   constructor() {
-    // create a container
-    this.container = awilix.createContainer({
-      injectionMode: awilix.InjectionMode.PROXY
-    });
+    this.baseDependencies = [
+      JUtilities,
+      JCache,
+      JLogger,
+      JPrompter,
+    ];
 
-    this.baseDependencies = {
-      utilities: asClass(JUtilities).singleton(),
-      cache: asClass(JCache ).singleton(),
-      logger: asClass(JLogger).singleton(),
-      prompter: asClass(JPrompter).singleton(),
-    }
-
-    this.container.register(this.baseDependencies);
+    this.registerDependencies(this.baseDependencies);
+    this.logger = container.resolve(JLogger);
   }
 
-  async getDependency<T extends JDependency>(dependency: string): Promise<T> {
-    const d = await this.container.resolve(dependency) as T;
+  async getDependency<T extends JDependency>(dependency: InjectionToken<T>): Promise<T> {
+    const d = container.resolve(dependency) as T;
     if (d.init) {
       return d.init();
     } else {
@@ -39,15 +35,15 @@ export class JApp {
     }
   }
 
-  async run(fn: (app: JApp) => Promise<boolean | void>) {
-    this.logger = await this.getDependency<JLogger>('logger');
+  async run(fn: (app: JApp) => Promise<boolean | undefined>) {
+    // this.logger = container.resolve(JLogger);
 
     let success: boolean = true;
     try {
       success = await fn(this) ?? true;
     } catch (error: any) {
       success = false;
-      this.logger.error(error.message);
+      // this.logger.error(error.message);
     }
     finally {
       await this.destroy(success);
@@ -56,16 +52,35 @@ export class JApp {
 
   async destroy(success: boolean) {
     await this.resetDependencies();
-    console.log(success ? 'Completed' : 'Failed');
-    console.log('Instance: ' + this.logger.instance);
+    console.info(success ? 'Completed' : 'Failed');
+    console.info('Instance: ' + this.logger.instance);
+  }
+
+  registerDependencies(dependencies: any[]) {
+    for (const dependency of dependencies) {
+      // register singleton with factory
+      container.register(dependency, {
+        useFactory: () => {
+          this.requestedDependencies.add(dependency);
+          const cachedInstance = this.dependencyCache.get(dependency);
+          if (cachedInstance) {
+            return cachedInstance;
+          }
+
+          const newDependency = new dependency();
+          this.dependencyCache.set(dependency, newDependency);
+          return newDependency;
+        }
+      });
+    }
   }
 
   private async resetDependencies() {
-    const dependencyStrings = [...Object.keys(this.baseDependencies), ...Object.keys(this.extendedDependencies)];
-    for (const dependencyString of dependencyStrings) {
-      const dependency = await this.getDependency<any>(dependencyString);
-      if (dependency.destroy) {
-        dependency.destroy();
+    const dependencies = [...this.requestedDependencies];
+    for (const dependency of dependencies) {
+      const dep = await this.getDependency<typeof dependency>(dependency);
+      if (dep.destroy) {
+        dep.destroy();
       }
     }
   }

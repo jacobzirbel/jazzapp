@@ -1,6 +1,8 @@
 import * as readline from 'readline';
 import { JDependency } from '../interfaces';
+import { injectable, singleton } from 'tsyringe';
 
+@singleton()
 export class JPrompter implements JDependency {
   reader: readline.Interface;
 
@@ -9,8 +11,6 @@ export class JPrompter implements JDependency {
       input: process.stdin,
       output: process.stdout
     });
-
-    return this;
   }
 
   async destroy(): Promise<void> {

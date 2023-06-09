@@ -1,7 +1,9 @@
+import { inject, injectable, singleton } from "tsyringe";
 import { JDependency } from "../interfaces";
 
+@singleton()
 export class JUtilities implements JDependency {
-  timeouts: NodeJS.Timeout[] = [];
+  private timeouts: Array<{ timeout: NodeJS.Timeout, resolve: () => void }> = [];
 
   constructor() { }
 
@@ -13,19 +15,24 @@ export class JUtilities implements JDependency {
     }
   }
 
-  async delay(ms: number): Promise<void> {
-    return new Promise(resolve => {
+  delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
       const timeout = setTimeout(() => {
         resolve();
-        this.timeouts = this.timeouts.filter(t => t !== timeout);
+        this.timeouts = this.timeouts.filter((t) => t.timeout !== timeout);
       }, ms);
-      this.timeouts.push(timeout);
+      this.timeouts.push({ timeout, resolve });
     });
   }
 
-  async destroy(): Promise<void> {
-    this.timeouts.forEach(clearTimeout);
+  destroy(): void {
+    this.timeouts.forEach(({ timeout, resolve }) => {
+      clearTimeout(timeout);
+      resolve();
+    });
+    this.timeouts = [];
   }
+
 
   generateUUID() {
     let d = new Date().getTime();
