@@ -2,5 +2,5 @@ export type Dependencies = 'utilities' | 'cache' | 'logger' | 'objectHandler' | 
 
 export interface JDependency {
   destroy?: () => void;
-  init?: () => this;
+  init?: () => Promise<this>;
 }

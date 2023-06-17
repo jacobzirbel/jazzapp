@@ -6,18 +6,19 @@ Basic usage:
 class MyApp extends JApp {
   constructor() {
     super();
-    this.extendedDependencies = {
-      myService: asClass(MyService).singleton()
-    }
+    this.extendedDependencies = [
+      { class: MyClass },
+      { class: MyDep }
+    ];
 
-    this.container.register(this.extendedDependencies);
+    this.registerDependencies(this.extendedDependencies);
   }
 }
 
 new MyApp().run(async myApp => {
-  const logger = myApp.getDependency('logger');
-  const myService = myApp.getDependency('myService');
+  const c = await app.getDependency(MyClass);
+  c.infoClass();
+  return true;
+})
 
-  myService.doStuff();
-});
 ```
