@@ -33,7 +33,6 @@ export class JUtilities implements JDependency {
     this.timeouts = [];
   }
 
-
   generateUUID() {
     let d = new Date().getTime();
     let d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;
