@@ -18,12 +18,18 @@ export class JPrompter implements JDependency {
     this.reader.close();
   }
 
-  async question<T = string>(q: string, validate?: AnswerValidator<T>): Promise<T> {
+  async question<T>(q: string, validate: (ans: string) => T | null): Promise<T>;
+
+  async question(q: string): Promise<string>;
+
+  async question<T = string>(q: string, validate?: (ans: string) => T | null): Promise<T | string> {
     if (!validate) {
-      validate = (a) => a as unknown as T;
+      const answer = await this.ask(q);
+      return answer;
+    } else {
+      const answer = validate(await this.ask(q));
+      return answer ?? await this.question(q, validate);
     }
-    const answer = validate(await this.ask(q));
-    return answer ?? this.question(q, validate);
   }
 
   private ask(q: string): Promise<string> {
