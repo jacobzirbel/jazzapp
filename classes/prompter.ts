@@ -2,13 +2,19 @@ import * as readline from 'readline';
 import { JDependency } from '../interfaces';
 import { injectable, singleton } from 'tsyringe';
 import { AnswerValidator } from '../interfaces/answer-validator.model';
+import { PromptModule, createPromptModule } from 'inquirer';
 
 @singleton()
 export class JPrompter implements JDependency {
-  reader: readline.Interface;
 
-  constructor() {
-    this.reader = readline.createInterface({
+  private _prompt: PromptModule;
+  get prompt(): PromptModule {
+    return this._prompt ??= createPromptModule();
+  }
+
+  private _reader: readline.Interface;
+  get reader(): readline.Interface {
+    return this._reader ??= readline.createInterface({
       input: process.stdin,
       output: process.stdout
     });
@@ -53,5 +59,29 @@ export class JPrompter implements JDependency {
     } else {
       return this.yn(q);
     }
+  }
+
+  async multi(options: string[], question: string) {
+    const answer = await this.prompt([
+      {
+        type: 'list',
+        name: 'choice',
+        message: question,
+        choices: options,
+      },
+    ]);
+    return answer.choice;
+  }
+
+  async checkbox(options: string[], question: string) {
+    const answer = await this.prompt([
+      {
+        type: 'checkbox',
+        name: 'checkbox',
+        message: question,
+        choices: options,
+      }
+    ]);
+    return answer.checkbox;
   }
 }
