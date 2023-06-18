@@ -33,4 +33,15 @@ describe('JApp', () => {
     const hasArgs = await app.getDependency(HasArgs);
     expect(hasArgs.args).toEqual({ arg12: 'test', arg2: 1 });
   });
+
+  test('should allow app to be extended', async () => {
+    await new MyApp().run(async (app) => {
+      expect(app.hasProperty).toBe(true);
+      return true;
+    });
+  })
 });
+
+class MyApp extends JApp {
+  hasProperty = true;
+}
