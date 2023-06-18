@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 import { InjectionToken, Lifecycle, container } from "tsyringe";
-import { JDependency } from '../interfaces';
+import { BASE_INIT_ARGS, JDependency } from '../interfaces';
 import { JCache } from './cache';
 import { JLogger } from './logger';
 import { JPrompter } from './prompter';
@@ -9,8 +9,8 @@ import dotenv from 'dotenv';
 import * as path from 'path';
 
 export class JApp {
-  extendedDependencies: { class: any, lifecycle?: Lifecycle }[] = [];
-  private baseDependencies: { class: any, lifecycle?: Lifecycle }[] = [];
+  extendedDependencies: { class: any, initArgs?: any | BASE_INIT_ARGS, lifecycle?: Lifecycle }[] = [];
+  private baseDependencies: { class: any, initArgs?: any, lifecycle?: Lifecycle }[] = [];
   private requestedDependencies: Set<any> = new Set();
   private dependencyCache = new Map();
 
@@ -28,12 +28,13 @@ export class JApp {
     this.registerDependencies(this.baseDependencies);
   }
 
-  async getDependency<T extends JDependency>(dependency: InjectionToken<T>): Promise<T> {
-    const d = container.resolve(dependency) as T;
-    if (d.init) {
-      return d.init();
+  async getDependency<T extends JDependency>(requested: InjectionToken<T>): Promise<T> {
+    const dependencyData = [...this.baseDependencies, ...this.extendedDependencies].find(d => d.class === requested);
+    const dependency = container.resolve(requested) as T;
+    if (dependency.init) {
+      return dependency.init(dependencyData?.initArgs);
     } else {
-      return d;
+      return dependency;
     }
   }
 
@@ -57,7 +58,7 @@ export class JApp {
     console.info('Instance: ' + this.logger.instance);
   }
 
-  registerDependencies(dependencies: any[]) {
+  registerDependencies(dependencies: { class: any, initArgs?: any, lifecycle?: Lifecycle }[]) {
     for (const dep of dependencies) {
       container.register(dep.class, { useClass: dep.class }, { lifecycle: dep.lifecycle ?? Lifecycle.Singleton });
       container.afterResolution(
