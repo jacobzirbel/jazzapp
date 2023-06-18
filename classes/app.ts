@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 import { InjectionToken, Lifecycle, container } from "tsyringe";
-import { BASE_INIT_ARGS, JDependency } from '../interfaces';
+import { BASE_INIT_ARGS, DependencyData, JDependency } from '../interfaces';
 import { JCache } from './cache';
 import { JLogger } from './logger';
 import { JPrompter } from './prompter';
@@ -9,8 +9,8 @@ import dotenv from 'dotenv';
 import * as path from 'path';
 
 export class JApp {
-  extendedDependencies: { class: any, initArgs?: any | BASE_INIT_ARGS, lifecycle?: Lifecycle }[] = [];
-  private baseDependencies: { class: any, initArgs?: any, lifecycle?: Lifecycle }[] = [];
+  extendedDependencies: DependencyData[] = [];
+  private baseDependencies: DependencyData[] = [];
   private requestedDependencies: Set<any> = new Set();
   private dependencyCache = new Map();
 
@@ -58,9 +58,14 @@ export class JApp {
     console.info('Instance: ' + this.logger.instance);
   }
 
-  registerDependencies(dependencies: { class: any, initArgs?: any, lifecycle?: Lifecycle }[]) {
+  registerDependencies(dependencies: DependencyData[]) {
+    dependencies = dependencies.reverse().filter((d, i) => dependencies.findIndex(dd => dd.class === d.class) === i);
+
     for (const dep of dependencies) {
-      container.register(dep.class, { useClass: dep.class }, { lifecycle: dep.lifecycle ?? Lifecycle.Singleton });
+      container.register(dep.class,
+        { useClass: dep.replaceWith ?? dep.class },
+        { lifecycle: dep.lifecycle ?? Lifecycle.Singleton }
+      );
       container.afterResolution(
         dep.class,
         (_t, result) => {
