@@ -72,7 +72,7 @@ export class JPrompter implements JDependency {
     return answer.choice;
   }
 
-  async checkbox(options: string[], question: string) {
+  async checkbox(options: string[], question: string): Promise<string[]> {
     const answer = await this.prompt([
       {
         type: 'checkbox',
@@ -81,6 +81,7 @@ export class JPrompter implements JDependency {
         choices: options,
       }
     ]);
+
     return answer.checkbox;
   }
 }
