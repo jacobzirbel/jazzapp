@@ -1,5 +1,7 @@
 import { inject, injectable, singleton } from "tsyringe";
 import { JDependency } from "../interfaces";
+import { existsSync } from "fs";
+import path from "path";
 
 @singleton()
 export class JUtilities implements JDependency {
@@ -48,4 +50,26 @@ export class JUtilities implements JDependency {
       return (c == 'x' ? r : (r & 0x7 | 0x8)).toString(16);
     });
   };
+
+  searchFileUpwards(filename: string) {
+    if (!filename) throw new Error('Filename is required');
+
+    let currentDir = process.cwd();
+
+    while (true) {
+      const filePath = path.join(currentDir, filename);
+
+      if (existsSync(filePath)) {
+        return filePath;
+      }
+
+      const parentDir = path.dirname(currentDir);
+
+      if (currentDir === parentDir) {
+        return null;
+      }
+
+      currentDir = parentDir;
+    }
+  }
 }

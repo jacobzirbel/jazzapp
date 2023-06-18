@@ -5,6 +5,8 @@ import { JCache } from './cache';
 import { JLogger } from './logger';
 import { JPrompter } from './prompter';
 import { JUtilities } from "./utilities";
+import dotenv from 'dotenv';
+import * as path from 'path';
 
 export class JApp {
   extendedDependencies: { class: any, lifecycle?: Lifecycle }[] = [];
@@ -22,6 +24,7 @@ export class JApp {
       { class: JPrompter },
     ];
 
+    this.configureEnv();
     this.registerDependencies(this.baseDependencies);
   }
 
@@ -75,5 +78,11 @@ export class JApp {
         dep.destroy();
       }
     }
+  }
+
+  configureEnv() {
+    const utilities = new JUtilities();
+    const envFile = utilities.searchFileUpwards('.env') || '';
+    dotenv.config({ path: envFile });
   }
 }
