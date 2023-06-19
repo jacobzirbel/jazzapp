@@ -8,7 +8,7 @@ interface HasArgsArgs extends BASE_INIT_ARGS {
   arg2: number;
 }
 
-class HasArgs implements JDependency<HasArgsArgs> {
+class HasArgs extends JDependency<HasArgsArgs> {
   name = 'HasArgs'
   args: HasArgsArgs;
 
@@ -18,7 +18,7 @@ class HasArgs implements JDependency<HasArgsArgs> {
   }
 }
 
-class CanOverwrite implements JDependency<HasArgsArgs> {
+class CanOverwrite extends JDependency<HasArgsArgs> {
   name = 'CanOverwrite'
 
   destroy?: () => void;
@@ -30,6 +30,7 @@ describe('JApp', () => {
     const app = new JApp();
     await app.run(async (app) => {
       const hasArgs = await app.getDependency(HasArgs);
+      expect(hasArgs).toBeDefined();
       expect(hasArgs).toBeInstanceOf(HasArgs);
       return true;
     });

@@ -4,10 +4,12 @@ import { existsSync } from "fs";
 import path from "path";
 
 @singleton()
-export class JUtilities implements JDependency {
+export class JUtilities extends JDependency {
   private timeouts: Array<{ timeout: NodeJS.Timeout, resolve: () => void }> = [];
 
-  constructor() { }
+  constructor() {
+    super();
+  }
 
   getSecret(key: string) {
     if (process.env[key]) {

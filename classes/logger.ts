@@ -5,7 +5,7 @@ import { JDependency } from "../interfaces";
 import { JObjectHandler } from "./object-handler";
 
 @singleton()
-export class JLogger implements JDependency {
+export class JLogger extends JDependency {
   private objectHandler: JObjectHandler;
   private logDir = './logs'
   private infoFile = 'info.txt';
@@ -13,6 +13,7 @@ export class JLogger implements JDependency {
   instance: string;
 
   constructor() {
+    super();
     this.objectHandler = new JObjectHandler();
     this.instance = this.generateDatedId();
 

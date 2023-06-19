@@ -5,7 +5,7 @@ import { AnswerValidator } from '../interfaces/answer-validator.model';
 import { PromptModule, createPromptModule } from 'inquirer';
 
 @singleton()
-export class JPrompter implements JDependency {
+export class JPrompter extends JDependency {
   private _prompt: PromptModule;
   get prompt(): PromptModule {
     return this._prompt ??= createPromptModule();

@@ -5,13 +5,14 @@ import { JLogger } from "./logger";
 import { JObjectHandler } from "./object-handler";
 
 @singleton()
-export class JCache implements JDependency {
+export class JCache extends JDependency {
   private objectHandler: JObjectHandler;
   private cacheDir: string;
 
   constructor(
     private logger: JLogger,
   ) {
+    super();
     this.objectHandler = new JObjectHandler();
     this.cacheDir = process.env.LOG_INFO_FILE || '.d_cache';
 

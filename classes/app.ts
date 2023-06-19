@@ -32,7 +32,7 @@ export class JApp {
     const dependencyData = [...this.baseDependencies, ...this.extendedDependencies].find(d => d.class === requested);
     const dependency = container.resolve(requested) as T;
     if (dependency.init) {
-      return dependency.init(dependencyData?.initArgs);
+      return dependency.init(dependencyData?.initArgs || { });
     } else {
       return dependency;
     }
@@ -54,7 +54,7 @@ export class JApp {
 
   async destroy(success: boolean) {
     await this.resetDependencies();
-    console.info(success ? 'Completed' : 'Failed');
+    console.info(success ? 'Completed' : 'Failed XXXXXXXXXXXXXXXXXX');
     console.info('Instance: ' + this.logger.instance);
   }
 
