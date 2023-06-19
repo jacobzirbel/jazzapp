@@ -6,7 +6,10 @@ import { PromptModule, createPromptModule } from 'inquirer';
 
 @singleton()
 export class JPrompter extends JDependency {
-  private prompt = createPromptModule();
+  private _prompt: PromptModule;
+  private get prompt(): PromptModule {
+    return this._prompt ??= createPromptModule();
+  }
 
   private _reader: readline.Interface;
   get reader(): readline.Interface {
@@ -34,12 +37,16 @@ export class JPrompter extends JDependency {
     }
   }
 
-  private ask(q: string): Promise<string> {
-    return new Promise(r => {
-      this.reader.question(q + ' ', (answer: string) => {
-        r(answer);
-      });
-    });
+  private async ask(q: string): Promise<string> {
+    let res = await this.prompt([
+      {
+        type: 'input',
+        name: 'answer',
+        message: q,
+      }
+    ])
+
+    return res.answer;
   }
 
   async yn(q: string, def?: boolean): Promise<boolean> {
