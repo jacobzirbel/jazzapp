@@ -45,7 +45,7 @@ export class JApp {
       success = await fn(this) ?? true;
     } catch (error: any) {
       success = false;
-      this.logger.error(error.message);
+      this.logger.error(error, error.message);
     }
     finally {
       await this.destroy(success);
