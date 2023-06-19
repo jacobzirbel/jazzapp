@@ -6,10 +6,7 @@ import { PromptModule, createPromptModule } from 'inquirer';
 
 @singleton()
 export class JPrompter extends JDependency {
-  private _prompt: PromptModule;
-  get prompt(): PromptModule {
-    return this._prompt ??= createPromptModule();
-  }
+  private prompt = createPromptModule();
 
   private _reader: readline.Interface;
   get reader(): readline.Interface {
@@ -60,7 +57,7 @@ export class JPrompter extends JDependency {
     }
   }
 
-  async multi(options: string[], question: string) {
+  async multi(options: string[], question: string): Promise<string> {
     const answer = await this.prompt([
       {
         type: 'list',
