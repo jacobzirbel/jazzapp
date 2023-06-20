@@ -1,8 +1,6 @@
-import * as readline from 'readline';
-import { JDependency } from '../interfaces';
-import { injectable, singleton } from 'tsyringe';
-import { AnswerValidator } from '../interfaces/answer-validator.model';
 import { PromptModule, createPromptModule } from 'inquirer';
+import { singleton } from 'tsyringe';
+import { JDependency } from '../interfaces';
 
 @singleton()
 export class JPrompter extends JDependency {
@@ -11,17 +9,6 @@ export class JPrompter extends JDependency {
     return this._prompt ??= createPromptModule();
   }
 
-  private _reader: readline.Interface;
-  get reader(): readline.Interface {
-    return this._reader ??= readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-  }
-
-  async destroy(): Promise<void> {
-    this.reader.close();
-  }
 
   async question<T>(q: string, validate: (ans: string) => T | null): Promise<T>;
 
