@@ -6,7 +6,7 @@ export class JObjectHandler {
     return JSON.stringify(obj, function (key, value) {
       if (value instanceof Map) {
         return {
-          dataType: 'Map',
+          __$dataType$__: 'Map',
           value: [...value]
         };
       } else {
@@ -18,7 +18,7 @@ export class JObjectHandler {
   parse<T>(str: string): T {
     return JSON.parse(str, function reviver(key, value) {
       if (typeof value === 'object' && value !== null) {
-        if (value.dataType === 'Map') {
+        if (value.__$dataType$__ === 'Map') {
           return new Map(value.value);
         }
       }

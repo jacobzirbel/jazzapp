@@ -9,7 +9,6 @@ export class JPrompter extends JDependency {
     return this._prompt ??= createPromptModule();
   }
 
-
   async question<T>(q: string, validate: (ans: string) => T | null): Promise<T>;
 
   async question(q: string): Promise<string>;
@@ -22,18 +21,6 @@ export class JPrompter extends JDependency {
       const answer = validate(await this.ask(q));
       return answer ?? await this.question(q, validate);
     }
-  }
-
-  private async ask(q: string): Promise<string> {
-    let res = await this.prompt([
-      {
-        type: 'input',
-        name: 'answer',
-        message: q,
-      }
-    ])
-
-    return res.answer;
   }
 
   async yn(q: string, def?: boolean): Promise<boolean> {
@@ -74,5 +61,17 @@ export class JPrompter extends JDependency {
     ]);
 
     return answer.checkbox;
+  }
+
+  private async ask(q: string): Promise<string> {
+    let res = await this.prompt([
+      {
+        type: 'input',
+        name: 'answer',
+        message: q,
+      }
+    ])
+
+    return res.answer;
   }
 }

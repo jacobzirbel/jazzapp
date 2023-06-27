@@ -8,13 +8,15 @@ import { JObjectHandler } from "./object-handler";
 export class JCache extends JDependency {
   private objectHandler: JObjectHandler;
   private cacheDir: string;
+  private filePromiseCache: { [key: string]: Promise<unknown> } = {};
+  private memoryPromiseCache: { [key: string]: Promise<unknown> } = {};
 
   constructor(
     private logger: JLogger,
   ) {
     super();
     this.objectHandler = new JObjectHandler();
-    this.cacheDir = process.env.LOG_INFO_FILE || '.d_cache';
+    this.cacheDir = process.env.CACHE_DIR || '.d_cache';
 
     if (!existsSync(this.cacheDir)) {
       mkdirSync(this.cacheDir);
@@ -22,14 +24,28 @@ export class JCache extends JDependency {
   }
 
   async cacheFile<T>(file: string, loadIfNotExists: () => Promise<T>): Promise<T> {
-    const filePath = `${this.cacheDir}/${file}.json`;
-    if (existsSync(filePath)) {
-      return this.objectHandler.parse(readFileSync(filePath, 'utf-8'));
-    } else {
-      const s = await loadIfNotExists();
-      writeFileSync(filePath, this.objectHandler.stringify(s), 'utf-8');
-      return s;
+    const path = `${this.cacheDir}/${file}.json`;
+
+    if (this.filePromiseCache[path]) {
+      return this.filePromiseCache[path] as Promise<T>;
     }
+
+    let filePromise: Promise<T>;
+
+    if (existsSync(path)) {
+      filePromise = Promise.resolve(this.objectHandler.parse(readFileSync(path, 'utf-8'))) as Promise<T>;
+    } else {
+      filePromise = loadIfNotExists().then(s => {
+        writeFileSync(path, this.objectHandler.stringify(s), 'utf-8');
+        return s;
+      });
+    }
+
+    return this.filePromiseCache[path] = filePromise;
+  }
+
+  async cacheMemory<T>(key: string, loadIfNotExists: () => Promise<T>): Promise<T> {
+    return (this.memoryPromiseCache[key] ??= loadIfNotExists()) as Promise<T>;
   }
 
   async cacheFake<T>(file: string, loadIfNotExists: () => Promise<T>): Promise<T> {

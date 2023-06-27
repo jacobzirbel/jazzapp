@@ -1,18 +1,16 @@
-import 'reflect-metadata'
+import dotenv from 'dotenv';
+import 'reflect-metadata';
 import { InjectionToken, Lifecycle, container } from "tsyringe";
-import { BASE_INIT_ARGS, DependencyData, JDependency } from '../interfaces';
+import { DependencyData, JDependency } from '../interfaces';
 import { JCache } from './cache';
 import { JLogger } from './logger';
 import { JPrompter } from './prompter';
 import { JUtilities } from "./utilities";
-import dotenv from 'dotenv';
-import * as path from 'path';
 
 export class JApp {
   extendedDependencies: DependencyData[] = [];
   private baseDependencies: DependencyData[] = [];
   private requestedDependencies: Set<any> = new Set();
-  private dependencyCache = new Map();
 
   logger: JLogger;
 
@@ -32,7 +30,7 @@ export class JApp {
     const dependencyData = [...this.baseDependencies, ...this.extendedDependencies].find(d => d.class === requested);
     const dependency = container.resolve(requested) as T;
     if (dependency.init) {
-      return dependency.init(dependencyData?.initArgs || { });
+      return dependency.init(dependencyData?.initArgs || {});
     } else {
       return dependency;
     }
@@ -86,9 +84,14 @@ export class JApp {
     }
   }
 
-  configureEnv() {
+  private configureEnv() {
     const utilities = new JUtilities();
-    const envFile = utilities.searchFileUpwards('.env') || '';
+    const envFile = utilities.searchFileUpwards('.env');
+
+    if (!envFile) {
+      console.warn('No .env file found');
+    }
+
     dotenv.config({ path: envFile });
   }
 }

@@ -12,18 +12,18 @@ export interface IPage {
   goto(url: string, options?: { timeout: number }): Promise<void>;
 }
 
-@injectable()
-export class JScraper {
+export class JScraperHelper {
   isInitialized: boolean = false;
 
   mainUrl = '';
   isTesting: boolean | undefined;
-  browser!: IBrowser;
-  page!: IPage;
 
-  constructor(private logger: JLogger, private utilities: JUtilities) {
-    this.logger = logger;
-    this.utilities = utilities;
+  logger: JLogger;
+  utilities: JUtilities;
+
+  constructor(private browser: IBrowser, private page: IPage) {
+    this.logger = new JLogger();
+    this.utilities = new JUtilities();
   }
 
   async loadPage(url?: string) {
