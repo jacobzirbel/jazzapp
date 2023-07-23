@@ -8,6 +8,6 @@ new JApp().run(async (app) => {
   logger.info('running app here');
   await utils.delay(1000)
 
-  console.log('end japp')
+  console.info('end japp')
   return true;
 });

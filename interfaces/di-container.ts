@@ -11,7 +11,6 @@ export class DIContainer {
   }
 
   async getDependency<T>(Token: any): Promise<T> {
-    console.log('GET DEPENDENCY')
     if (!this.instances.has(Token)) {
       const data = this.dependencies.find(d => d.class === Token);
       if (!data) {
@@ -20,7 +19,6 @@ export class DIContainer {
       Token = data?.replaceWith || Token;
 
       const dependencies = Reflect.getMetadata('design:paramtypes', Token) || [];
-      console.log(dependencies);
       const instances = await Promise.all(dependencies.map((dep: any) => this.getDependency(dep)));
       const instance = new Token(...instances);
       this.instances.set(Token, instance);
