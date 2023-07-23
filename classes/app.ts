@@ -51,7 +51,6 @@ export class JApp {
   }
 
   registerDependencies(dependencies: DependencyData[]) {
-    dependencies = dependencies.reverse().filter((d, i) => dependencies.findIndex(dd => dd.class === d.class) === i);
     this.container.registerDependencies(dependencies);
   }
 

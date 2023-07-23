@@ -5,8 +5,9 @@ export class DIContainer {
   private instances = new Map<any, any>();
   private dependencies: DependencyData[] = [];
 
-  registerDependencies(dependencies: DependencyData[]) {
-    this.dependencies = dependencies;
+  registerDependencies(deps: DependencyData[]) {
+    this.dependencies = [...this.dependencies, ...deps];
+    this.dependencies = this.dependencies.reverse().filter((d, i) => this.dependencies.findIndex(dd => dd.class === d.class) === i);
   }
 
   async getDependency<T>(Token: any): Promise<T> {
