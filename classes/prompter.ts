@@ -1,6 +1,7 @@
 import { PromptModule, createPromptModule } from 'inquirer';
 import { singleton } from 'tsyringe';
 import { JDependency } from '../interfaces';
+import { AnswerValidator } from '../interfaces/answer-validator.model';
 
 @singleton()
 export class JPrompter extends JDependency {
@@ -9,30 +10,28 @@ export class JPrompter extends JDependency {
     return this._prompt ??= createPromptModule();
   }
 
-  async question<T>(q: string, validate: (ans: string) => T | null): Promise<T>;
-
-  async question(q: string): Promise<string>;
-
-  async question<T = string>(q: string, validate?: (ans: string) => T | null): Promise<T | string> {
-    if (!validate) {
-      const answer = await this.ask(q);
-      return answer;
-    } else {
-      const answer = validate(await this.ask(q));
-      return answer ?? await this.question(q, validate);
+  async question<T = string>(q: string, validate?: AnswerValidator<T>): Promise<T | string> {
+    const answer = await this.ask(q);
+    
+    if(validate){
+      const validatedAnswer = validate(answer);
+      if(validatedAnswer) return validatedAnswer;
+      else return await this.question(q, validate);
     }
+    
+    return answer;
   }
 
-  async yn(q: string, def?: boolean): Promise<boolean> {
-    const y = def === true ? 'Y' : 'y';
-    const n = def === false ? 'N' : 'n';
+  async yn(q: string, defaultValue?: boolean): Promise<boolean> {
+    const y = defaultValue === true ? 'Y' : 'y';
+    const n = defaultValue === false ? 'N' : 'n';
     const answer = await this.ask(`${q} ${y}/${n}`);
     if (answer.toLowerCase() === 'y') {
       return true;
     } else if (answer.toLowerCase() === 'n') {
       return false;
-    } else if (!answer && (def === true || def === false)) {
-      return def;
+    } else if (!answer && (defaultValue === true || defaultValue === false)) {
+      return defaultValue;
     } else {
       return this.yn(q);
     }
