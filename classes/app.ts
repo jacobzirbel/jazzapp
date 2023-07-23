@@ -1,17 +1,17 @@
 import dotenv from 'dotenv';
 import 'reflect-metadata';
-import { InjectionToken, Lifecycle, container } from "tsyringe";
 import { DependencyData, JDependency } from '../interfaces';
 import { JCache } from './cache';
 import { JLogger } from './logger';
 import { JPrompter } from './prompter';
 import { JUtilities } from "./utilities";
+import { DIContainer } from '../interfaces/di-container';
 
 export class JApp {
   extendedDependencies: DependencyData[] = [];
   private baseDependencies: DependencyData[] = [];
   private requestedDependencies: Set<any> = new Set();
-
+  private container = new DIContainer();
   logger: JLogger;
 
   constructor() {
@@ -26,8 +26,8 @@ export class JApp {
     this.registerDependencies(this.baseDependencies);
   }
 
-  async getDependency<T extends JDependency>(requested: InjectionToken<T>): Promise<T> {
-    return container.resolve(requested) as T;
+  async getDependency<T extends JDependency>(requested: any): Promise<T> {
+    return this.container.getDependency<T>(requested);
   }
 
   async run(fn: (app: this) => Promise<boolean | undefined | void>) {
@@ -52,23 +52,7 @@ export class JApp {
 
   registerDependencies(dependencies: DependencyData[]) {
     dependencies = dependencies.reverse().filter((d, i) => dependencies.findIndex(dd => dd.class === d.class) === i);
-
-    for (const dep of dependencies) {
-      container.register(dep.class,
-        { useClass: dep.replaceWith ?? dep.class },
-        { lifecycle: dep.lifecycle ?? Lifecycle.Singleton }
-      );
-      container.afterResolution(
-        dep.class,
-        (_t, result: JDependency) => {
-          this.requestedDependencies.add(dep.class);
-          if (result.init) {
-            result.init(dep.initArgs || {});
-          }
-        },
-        { frequency: "Once" }
-      );
-    }
+    this.container.registerDependencies(dependencies);
   }
 
   private async resetDependencies() {
@@ -88,6 +72,8 @@ export class JApp {
     if (!envFile) {
       console.warn('No .env file found');
     }
+
+    console.info('Using .env file: ' + envFile)
 
     dotenv.config({ path: envFile });
   }
