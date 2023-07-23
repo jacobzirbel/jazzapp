@@ -26,7 +26,7 @@ export class JApp {
     this.registerDependencies(this.baseDependencies);
   }
 
-  async getDependency<T extends JDependency>(requested: any): Promise<T> {
+  async getDependency<T extends JDependency>(requested: new (...args: any[]) => T): Promise<T> {
     return this.container.getDependency<T>(requested);
   }
 
