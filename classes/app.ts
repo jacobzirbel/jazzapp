@@ -27,13 +27,7 @@ export class JApp {
   }
 
   async getDependency<T extends JDependency>(requested: InjectionToken<T>): Promise<T> {
-    const dependencyData = [...this.baseDependencies, ...this.extendedDependencies].find(d => d.class === requested);
-    const dependency = container.resolve(requested) as T;
-    if (dependency.init) {
-      return dependency.init(dependencyData?.initArgs || {});
-    } else {
-      return dependency;
-    }
+    return container.resolve(requested) as T;
   }
 
   async run(fn: (app: this) => Promise<boolean | undefined | void>) {
@@ -66,8 +60,11 @@ export class JApp {
       );
       container.afterResolution(
         dep.class,
-        (_t, result) => {
+        (_t, result: JDependency) => {
           this.requestedDependencies.add(dep.class);
+          if (result.init) {
+            result.init(dep.initArgs || {});
+          }
         },
         { frequency: "Once" }
       );
