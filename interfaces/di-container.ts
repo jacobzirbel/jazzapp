@@ -4,6 +4,7 @@ import { DependencyData } from './dependencies';
 export class DIContainer {
   private instances = new Map<any, any>();
   private dependencies: DependencyData[] = [];
+  private requestedDependencies: Set<any> = new Set();
 
   registerDependencies(deps: DependencyData[]) {
     this.dependencies = [...this.dependencies, ...deps];
@@ -12,6 +13,7 @@ export class DIContainer {
 
   async getDependency<T>(Token: any): Promise<T> {
     if (!this.instances.has(Token)) {
+      this.requestedDependencies.add(Token);
       const data = this.dependencies.find(d => d.class === Token);
       if (!data) {
         throw new Error(`Dependency ${Token.name} has not been registered`);
@@ -27,5 +29,17 @@ export class DIContainer {
       }
     }
     return this.instances.get(Token);
+  }
+
+  async destroy() {
+    const dependencies = [...this.requestedDependencies];
+    for (const dependency of dependencies) {
+      const dep = await this.getDependency<typeof dependency>(dependency);
+      if (dep.destroy) {
+        dep.destroy();
+      }
+    }
+    this.instances.clear();
+    this.requestedDependencies.clear();
   }
 }

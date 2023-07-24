@@ -10,7 +10,6 @@ import { DIContainer } from '../interfaces/di-container';
 export class JApp {
   extendedDependencies: DependencyData[] = [];
   private baseDependencies: DependencyData[] = [];
-  private requestedDependencies: Set<any> = new Set();
   private container = new DIContainer();
   logger: JLogger;
 
@@ -55,13 +54,7 @@ export class JApp {
   }
 
   private async resetDependencies() {
-    const dependencies = [...this.requestedDependencies];
-    for (const dependency of dependencies) {
-      const dep = await this.getDependency<typeof dependency>(dependency);
-      if (dep.destroy) {
-        dep.destroy();
-      }
-    }
+    this.container.destroy();
   }
 
   private configureEnv() {
