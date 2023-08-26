@@ -18,8 +18,8 @@ export class JLogger extends JDependency {
     this.instance = this.generateDatedId();
 
     this.logDir = process.env.LOG_DIR || this.logDir;
-    this.infoFile = this.logDir + '/' + (process.env.LOG_INFO_FILE || this.infoFile);
-    this.errorFile = this.logDir + '/' + (process.env.LOG_ERROR_FILE || this.errorFile);
+    this.infoFile = path.join(this.logDir, process.env.LOG_INFO_FILE || this.infoFile);
+    this.errorFile = path.join(this.logDir, process.env.LOG_ERROR_FILE || this.errorFile);
 
     if (!existsSync(this.logDir)) {
       mkdirSync(this.logDir, { recursive: true });
@@ -27,10 +27,6 @@ export class JLogger extends JDependency {
 
     if (!existsSync(this.infoFile)) {
       writeFileSync(this.infoFile, '');
-    }
-
-    if (!existsSync(this.logDir)) {
-      mkdirSync(this.logDir, { recursive: true });
     }
 
     if (!existsSync(this.errorFile)) {
@@ -55,7 +51,7 @@ export class JLogger extends JDependency {
   }
 
   write(file: string, str: string): string {
-    const filePath = `./logs/${this.instance}/${file}-${this.instance}-${Math.random()}-${new Date().toISOString()}`;
+    const filePath = path.join(this.logDir, this.instance, `${file}-${this.instance}-${Math.random()}-${new Date().toISOString()}`);
     writeFileSync(filePath, str || '', 'utf-8');
     return file;
   }

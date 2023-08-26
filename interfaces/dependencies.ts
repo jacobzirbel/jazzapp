@@ -13,9 +13,11 @@ export class JDependency<Args extends BASE_INIT_ARGS = BASE_INIT_ARGS> {
   destroy?(): void { }
 }
 
+export type Lifetime = 'singleton' | 'transient';
 
 export interface DependencyData {
   class: any,
   initArgs?: any | BASE_INIT_ARGS,
   replaceWith?: any,
+  lifetime?: Lifetime,
 }

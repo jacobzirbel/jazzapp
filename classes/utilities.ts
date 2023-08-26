@@ -15,7 +15,7 @@ export class JUtilities extends JDependency {
     if (process.env[key]) {
       return process.env[key];
     } else {
-      throw new Error(`No secret for ${key}`);
+      throw new Error(`Jazzapp: No secret for ${key}`);
     }
   }
 
@@ -53,25 +53,28 @@ export class JUtilities extends JDependency {
     });
   };
 
-  searchFileUpwards(filename: string) {
-    if (!filename) throw new Error('Filename is required');
+  searchFileUpwards(filename: string): string | null {
+    if (!filename) throw new Error('Jazzapp: Filename is required');
 
     let currentDir = process.cwd();
+    const rootDir = path.parse(currentDir).root;
 
-    while (true) {
+    while (currentDir !== rootDir) {
       const filePath = path.join(currentDir, filename);
 
       if (existsSync(filePath)) {
         return filePath;
       }
 
-      const parentDir = path.dirname(currentDir);
-
-      if (currentDir === parentDir) {
-        return null;
-      }
-
-      currentDir = parentDir;
+      currentDir = path.dirname(currentDir);
     }
+
+    // Check the root directory as well before returning null.
+    if (existsSync(path.join(rootDir, filename))) {
+      return path.join(rootDir, filename);
+    }
+
+    return null;
   }
+
 }

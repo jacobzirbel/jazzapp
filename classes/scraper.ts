@@ -33,6 +33,7 @@ export class JScraperHelper {
   async customUrlAwait(expectedUrl: string) {
     let url = '';
     let n = 0;
+
     while (url !== expectedUrl && n < 30) {
       if (n % 5 === 0 && n > 5) {
         this.logger.info(`getFinalResults url delay - ${n}s`);
@@ -40,8 +41,9 @@ export class JScraperHelper {
       await this.utilities.delay(1000);
       url = await this.page.url();
     };
+
     if (url !== expectedUrl) {
-      throw new Error(`Failed to get to url - actual: ${url} - want: ${expectedUrl}`);
+      throw new Error(`Jazzapp: Failed to get to url - actual: ${url} - want: ${expectedUrl}`);
     }
   }
 

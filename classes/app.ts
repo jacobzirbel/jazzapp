@@ -26,7 +26,7 @@ export class JApp {
   }
 
   async getDependency<T extends JDependency>(requested: new (...args: any[]) => T): Promise<T> {
-    return this.container.getDependency<T>(requested);
+    return this.container.getDependency<T>(requested as any);
   }
 
   async run(fn: (app: this) => Promise<boolean | undefined | void>) {
@@ -50,6 +50,10 @@ export class JApp {
   }
 
   registerDependencies(dependencies: DependencyData[]) {
+    dependencies.forEach(d => {
+      d.lifetime = d.lifetime || 'singleton';
+    });
+
     this.container.registerDependencies(dependencies);
   }
 

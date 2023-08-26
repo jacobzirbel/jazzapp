@@ -1,7 +1,6 @@
 import { PromptModule, createPromptModule } from 'inquirer';
 import { singleton } from 'tsyringe';
 import { JDependency } from '../interfaces';
-import { AnswerValidator } from '../interfaces/answer-validator.model';
 
 @singleton()
 export class JPrompter extends JDependency {
@@ -23,6 +22,7 @@ export class JPrompter extends JDependency {
       return answer ?? await this.question(q, validate);
     }
   }
+
   async yn(q: string, defaultValue?: boolean): Promise<boolean> {
     const y = defaultValue === true ? 'Y' : 'y';
     const n = defaultValue === false ? 'N' : 'n';
