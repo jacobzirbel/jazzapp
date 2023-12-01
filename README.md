@@ -1,6 +1,8 @@
 This is a base for typescript node applications. It has some common classes that I want in all my projects.
 
-Basic usage:
+Main reason for this was to have async constructors with dependency injection.
+
+Someday I'll write some docs but for now here's an example of basic usage:
 
 ```
 class MyApp extends JApp {
